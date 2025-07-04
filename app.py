@@ -1,16 +1,13 @@
 from flask import Flask, request, jsonify
-import pyodbc
+import pymssql
 
 app = Flask(__name__)
 
-# SQL Server connection string
-conn_str = (
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=zddevcad54;"
-    "DATABASE=WSS_Content_Ziconnect;"
-    "UID=spdevadmin_sql;"
-    "PWD=Test$321"
-)
+# SQL Server connection details
+server = 'zddevcad54'
+user = 'spdevadmin_sql'
+password = 'Test$321'
+database = 'WSS_Content_Ziconnect'
 
 @app.route('/add-data', methods=['POST'])
 def add_data():
@@ -19,15 +16,14 @@ def add_data():
     age = data.get('age')
 
     try:
-        conn = pyodbc.connect(conn_str)
+        conn = pymssql.connect(server=server, user=user, password=password, database=database)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO APITest (Name, Age) VALUES (?, ?)", (name, age))
+        cursor.execute("INSERT INTO APITest (Name, Age) VALUES (%s, %s)", (name, age))
         conn.commit()
+        conn.close()
         return jsonify({"message": "Data inserted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
-
-
